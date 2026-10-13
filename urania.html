@@ -61,6 +61,7 @@ details.new[open]>summary{border-bottom:1px solid var(--line)}
 details.new .inner{padding:14px}
 .trip{background:var(--surface);border:1px solid var(--line);border-radius:12px;display:grid;grid-template-columns:76px 1fr;overflow:hidden}
 .stub{background:var(--ink);color:var(--bg);display:grid;align-content:start;justify-items:center;padding:14px 4px;text-align:center;gap:2px;border-right:2px dashed var(--bg)}
+.stub .cat{font-family:var(--display);font-weight:700;font-size:.95rem;letter-spacing:.05em;background:var(--accent);color:var(--accent-ink);border-radius:4px;padding:1px 7px;margin-bottom:6px}
 .stub .dow{font-size:.72rem;letter-spacing:.1em;font-weight:700;text-transform:uppercase;opacity:.8}
 .stub .day{font-family:var(--display);font-size:2.3rem;line-height:1;font-weight:700}
 .stub .mon{font-family:var(--display);font-size:1rem;text-transform:uppercase;letter-spacing:.06em}
@@ -356,6 +357,10 @@ details.new .inner{padding:14px}
   function needName(){ if(myName()) return true; toast(T("tName")); showMe(true); nameInput.focus(); return false; }
   function showMe(open){ $("#me").hidden = !open; $("#ubtn").setAttribute("aria-expanded", open ? "true" : "false"); }
   function setUname(){ $("#uname").textContent = firstName(myName()) || T("meTitle"); }
+  // Categoria (U15, U16, U17, U19...): dall'inizio del nome partita, altrimenti dalle note, altrimenti quella della pagina
+  var CAT = "U17";
+  function catOf(t){ var m = String(t.partita||"").match(/^\s*(U\d{2})\b/i) || String(t.note||"").match(/\b(U\d{2})\b/i); return m ? m[1].toUpperCase() : CAT; }
+  function title(t){ return String(t.partita||"").replace(/^\s*U\d{2}\s*[·:\-–]\s*/i, ""); }
   function routeLink(from, to){ return "https://www.google.com/maps/dir/?api=1&travelmode=driving&origin=" + encodeURIComponent(from) + "&destination=" + encodeURIComponent(to); }
   function mapsLink(place){ return "https://www.google.com/maps/search/?api=1&query=" + encodeURIComponent(place); }
 
@@ -397,9 +402,10 @@ details.new .inner{padding:14px}
       : '<span class="chip">'+T("noCars")+'</span>';
     var rq = requests.filter(function(q){ return q.trasfertaId === t.id; }).sort(function(a,b){ return a.creato.localeCompare(b.creato); });
     if(rq.length) chip += '<span class="chip need">' + (rq.length===1 ? T("need1") : T("needN",{n:rq.length})) + '</span>';
-    var h = '<article class="trip"><div class="stub"><span class="dow">'+p.dow+'</span><span class="day">'+p.day+'</span><span class="mon">'+p.mon+'</span>'
+    var ct = catOf(t);
+    var h = '<article class="trip"><div class="stub">' + (ct ? '<span class="cat">'+esc(ct)+'</span>' : '') + '<span class="dow">'+p.dow+'</span><span class="day">'+p.day+'</span><span class="mon">'+p.mon+'</span>'
       + (t.ora ? '<span class="time" title="'+T("tipTitle")+'">'+esc(t.ora)+'</span>' : '') + '</div><div class="tbody">'
-      + '<div class="thead"><div style="min-width:0"><h2>'+esc(t.partita)+'</h2>'
+      + '<div class="thead"><div style="min-width:0"><h2>'+esc(title(t))+'</h2>'
       + (t.palestra ? '<div class="meta">📍 <a href="'+mapsLink(t.palestra)+'" target="_blank" rel="noopener">'+esc(t.palestra)+'</a></div>' : '')
       + (t.note ? '<div class="meta">'+esc(t.note)+'</div>' : '')
       + '</div><div class="summary">'+chip+'</div></div>'
